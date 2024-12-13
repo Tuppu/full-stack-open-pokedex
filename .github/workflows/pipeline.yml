@@ -41,6 +41,15 @@ jobs:
            #   serviceId: ${{ secrets.RENDER_SERVICE_ID }}
            #   apiKey: ${{ secrets.RENDER_API_KEY }}
            #   multipleDeployment: false #optional, default true
+          - name: The job has succeeded
+            uses: rjstone/discord-webhook-notify@v1.0.4
+            if: ${{ success() }}
+            with:
+              severity: info
+              username: GitHub
+              text: A new version of Pokedex deployed
+              details: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
     tag_release:
         needs: [simple_deployment_pipeline]
         runs-on: ubuntu-20.04
@@ -52,3 +61,27 @@ jobs:
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               DEFAULT_BUMP: patch
+
+    discord_status:
+        needs: [simple_deployment_pipeline]
+        runs-on: ubuntu-20.04
+        steps:
+          - name: The job has succeeded
+            uses: rjstone/discord-webhook-notify@v1.0.4
+            if: ${{ success() }}
+            with:
+              severity: info
+              username: GitHub
+              text: A new version of Pokedex deployed
+              details: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          - name: Test Failure
+            uses: rjstone/discord-webhook-notify@v1.0.4
+            if: ${{ failure() }}
+            with:
+              severity: error
+              username: GitHub
+              text: Build failed
+              description: commit
+              details: ${{ toJson(github.server_url) }}/${{ toJson(github.repository) }}/commit/${{toJson(github.sha)}} by @${{ toJson(github.actor) }} broke the build :(
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
