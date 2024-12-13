@@ -52,3 +52,22 @@ jobs:
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               DEFAULT_BUMP: patch
+
+    discord_status:
+        needs: [simple_deployment_pipeline]
+        runs-on: ubuntu-20.04
+        steps:
+          - name: The job has succeeded
+            uses: discord-actions/message@v2
+            if: ${{ success() }}
+            with:
+              username: GitHub
+              message: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          - name: Test Failure
+            uses: discord-actions/message@v2
+            if: ${{ failure() }}
+            with:
+              username: GitHub
+              message: ${{ toJson(github.server_url) }}/${{ toJson(github.repository) }}/commit/${{toJson(github.sha)}} by @${{ toJson(github.actor) }} broke the build :(
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
