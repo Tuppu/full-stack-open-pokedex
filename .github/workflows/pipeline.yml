@@ -52,3 +52,24 @@ jobs:
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               DEFAULT_BUMP: patch
+
+    discord_status:
+        needs: [simple_deployment_pipeline]
+        runs-on: ubuntu-20.04
+        steps:
+          - name: The job has succeeded
+            uses: rjstone/discord-webhook-notify@v1.0.2
+            if: ${{ success() }}
+            with:
+              severity: info
+              username: GitHub
+              text: A new version of Pokedex deployed
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          - name: Test Failure
+            uses: rjstone/discord-webhook-notify@v1.0.2
+            if: ${{ failure() }}
+            with:
+              severity: error
+              username: GitHub
+              text: Build failed
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
