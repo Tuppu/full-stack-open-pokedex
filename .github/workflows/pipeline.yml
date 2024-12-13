@@ -52,3 +52,39 @@ jobs:
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               DEFAULT_BUMP: patch
+
+    discord_status:
+        needs: [simple_deployment_pipeline]
+        runs-on: ubuntu-20.04
+        steps:
+          - name: The job has succeeded
+            uses: rjstone/discord-webhook-notify@v1.0.4
+            if: ${{ success() }}
+            with:
+              severity: info
+              username: GitHub
+              avatarUrl: https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png
+              text: A new version of Pokedex deployed
+              details: Deploy to ${{ inputs.deploy_target }} by @${{ github.actor }}
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          - name: Test Failure
+            uses: rjstone/discord-webhook-notify@v1.0.4
+            if: failure()
+            with:
+              severity: error
+              username: GitHub
+              text: Build failed
+              description: commit
+              details: ${{ github.server_url }}/${{ github.repository }}/commit/${{github.sha}} by @${{ github.actor }} broke the build :(
+              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
+    a_test_job:
+      runs-on: ubuntu-20.04
+      steps:
+        - uses: actions/checkout@v4
+        - name: DISCORD_WEBHOOK
+          run: echo "${{ secrets.DISCORD_WEBHOOK }}"
+        - name: GITHUB_TOKEN
+          run: echo "${{ secrets.GITHUB_TOKEN }}"
+        - name: message
+          run: echo "${{ toJson(github.event.commits.*.message) }}"
