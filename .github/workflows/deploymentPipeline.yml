@@ -10,6 +10,7 @@ on:
 
 env:
   SKIP: ${{ contains(toJson(github.event.commits.*.message), '#skip') }}
+  URL: https://full-stack-open-pokedex-o3mk.onrender.com
 
 jobs:
     simple_deployment_pipeline:
@@ -41,14 +42,6 @@ jobs:
            #   serviceId: ${{ secrets.RENDER_SERVICE_ID }}
            #   apiKey: ${{ secrets.RENDER_API_KEY }}
            #   multipleDeployment: false #optional, default true
-          - name: The job has succeeded
-            if: ${{ success() }}  
-            uses: rjstone/discord-webhook-notify@v1.0.4
-            with:
-              severity: info
-              text: A new version of Pokedex deployed
-              details: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
-              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
     tag_release:
         needs: [simple_deployment_pipeline]
         runs-on: ubuntu-20.04
@@ -66,21 +59,20 @@ jobs:
         runs-on: ubuntu-20.04
         steps:
           - name: The job has succeeded
-            uses: rjstone/discord-webhook-notify@v1.0.4
+            uses: tsickert/discord-webhook@v5.3.0
             if: ${{ success() }}
             with:
-              severity: info
+              embed-color: 1176952
               username: GitHub
-              text: A new version of Pokedex deployed
-              details: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
-              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-          - name: Test Failure
-            uses: rjstone/discord-webhook-notify@v1.0.4
+              embed-title: A new version of Pokedex deployed
+              embed-description: Deploy to ${{env.URL}} by ${{ github.actor }}
+              webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          - name: The job has failed
+            uses: tsickert/discord-webhook@v5.3.0
             if: ${{ failure() }}
             with:
-              severity: error
+              embed-color: 16061203
               username: GitHub
-              text: Build failed
-              description: commit
-              details: ${{ toJson(github.server_url) }}/${{ toJson(github.repository) }}/commit/${{toJson(github.sha)}} by @${{ toJson(github.actor) }} broke the build :(
-              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+              embed-title: Build failed
+              embed-description: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }} by ${{ github.actor }} broke the build :(
+              webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
