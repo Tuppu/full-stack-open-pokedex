@@ -41,14 +41,6 @@ jobs:
            #   serviceId: ${{ secrets.RENDER_SERVICE_ID }}
            #   apiKey: ${{ secrets.RENDER_API_KEY }}
            #   multipleDeployment: false #optional, default true
-          - name: The job has succeeded
-            if: ${{ success() }}  
-            uses: rjstone/discord-webhook-notify@v1.0.4
-            with:
-              severity: info
-              text: A new version of Pokedex deployed
-              details: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
-              webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
     tag_release:
         needs: [simple_deployment_pipeline]
         runs-on: ubuntu-20.04
@@ -74,7 +66,7 @@ jobs:
               text: A new version of Pokedex deployed
               details: Deploy to https://full-stack-open-pokedex-o3mk.onrender.com/ by @${{ toJson(github.actor) }}
               webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-          - name: Test Failure
+          - name: The job has failed
             uses: rjstone/discord-webhook-notify@v1.0.4
             if: ${{ failure() }}
             with:
